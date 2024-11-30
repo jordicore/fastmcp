@@ -119,12 +119,16 @@ class FastMCP:
             for info in tools
         ]
 
-    def get_context(self) -> Optional["Context"]:
+    def get_context(self) -> "Context":
+        """
+        Returns a Context object. Note that the context will only be valid
+        during a request; outside a request, most methods will error.
+        """
         try:
             request_context = self._mcp_server.request_context
-            return Context(request_context=request_context, fastmcp=self)
         except LookupError:
-            return None
+            request_context = None
+        return Context(request_context=request_context, fastmcp=self)
 
     async def call_tool(
         self, name: str, arguments: dict
@@ -457,7 +461,11 @@ class Context(BaseModel):
     _fastmcp: FastMCP
 
     def __init__(
-        self, *, request_context: RequestContext, fastmcp: FastMCP, **kwargs: Any
+        self,
+        *,
+        request_context: RequestContext = None,
+        fastmcp: FastMCP = None,
+        **kwargs: Any,
     ):
         super().__init__(**kwargs)
         self._request_context = request_context
@@ -466,11 +474,15 @@ class Context(BaseModel):
     @property
     def fastmcp(self) -> FastMCP:
         """Access to the FastMCP server."""
+        if self._fastmcp is None:
+            raise ValueError("Context is not available outside of a request")
         return self._fastmcp
 
     @property
     def request_context(self) -> RequestContext:
         """Access to the underlying request context."""
+        if self._request_context is None:
+            raise ValueError("Context is not available outside of a request")
         return self._request_context
 
     async def report_progress(
