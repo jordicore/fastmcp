@@ -115,4 +115,3 @@ fastmcp install your_server.py --with-editable . --with pandas --with numpy
 ```
 
 
-FastMCP can be configured via environment variables with the prefix `FASTMCP_`:
