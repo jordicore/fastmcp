@@ -24,8 +24,9 @@ from pydantic.networks import _BaseUrl
 from fastmcp.exceptions import ResourceError
 from fastmcp.resources import Resource, ResourceManager
 from fastmcp.resources.types import FunctionResource
-from fastmcp.tools import ToolManager, Image
+from fastmcp.tools import ToolManager
 from fastmcp.utilities.logging import get_logger, configure_logging
+from fastmcp.utilities.types import Image
 
 logger = get_logger(__name__)
 
