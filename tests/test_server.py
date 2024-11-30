@@ -1,16 +1,18 @@
+import base64
+from pathlib import Path
+from typing import TYPE_CHECKING, Union
+
+import pytest
+from mcp.shared.exceptions import McpError
 from mcp.shared.memory import (
     create_connected_server_and_client_session as client_session,
 )
-from mcp.shared.exceptions import McpError
-from fastmcp import FastMCP, Context
+from mcp.types import ImageContent, TextContent
+
+from fastmcp import Context, FastMCP
+from fastmcp.prompts.base import EmbeddedResource, Message, UserMessage
 from fastmcp.resources import FileResource, FunctionResource
 from fastmcp.utilities.types import Image
-from mcp.types import TextContent, ImageContent
-from fastmcp.prompts.base import Message, UserMessage, TextContent, EmbeddedResource
-import pytest
-from pathlib import Path
-import base64
-from typing import Union, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from fastmcp import Context
