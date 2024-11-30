@@ -20,14 +20,11 @@ from mcp.types import (
 from pydantic_settings import BaseSettings
 from pydantic.networks import _BaseUrl
 
-from .exceptions import ResourceError
-from .resources import (
-    Resource,
-    FunctionResource,
-    ResourceManager,
-)
-from .tools import ToolManager, Image
-from .utilities.logging import get_logger, configure_logging
+from fastmcp.exceptions import ResourceError
+from fastmcp.resources import Resource, ResourceManager
+from fastmcp.resources.types import FunctionResource
+from fastmcp.tools import ToolManager, Image
+from fastmcp.utilities.logging import get_logger, configure_logging
 
 logger = get_logger(__name__)
 
