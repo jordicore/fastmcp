@@ -12,3 +12,7 @@ wheels/
 
 
 src/fastmcp/_version.py
+
+# editors
+.cursorrules
+.vscode/
