@@ -3,7 +3,7 @@ from mcp.shared.memory import (
 )
 from fastmcp import FastMCP
 from fastmcp.resources import FileResource, FunctionResource
-from fastmcp.tools import Image
+from fastmcp.utilities.types import Image
 from mcp.types import TextContent, ImageContent
 import pytest
 from pydantic import BaseModel
