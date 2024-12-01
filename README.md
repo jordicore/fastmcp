@@ -109,7 +109,7 @@ fastmcp install server.py
 fastmcp dev server.py
 ```
 
-![MCP Inspector](docs/images/mcp-inspector.png)
+![MCP Inspector](/docs/assets/demo-inspector.png)
 
 ## What is MCP?
 
