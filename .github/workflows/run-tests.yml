@@ -28,7 +28,7 @@ jobs:
         run: uv python install 3.11
 
       - name: Install FastMCP
-        run: uv sync --all-extras --dev
+        run: uv sync --extra dev
 
       - name: Run tests
         run: uv run pytest -vv
