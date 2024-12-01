@@ -1,4 +1,4 @@
-"""logging utilities for fastmcp"""
+"""Logging utilities for FastMCP."""
 
 import logging
 from typing import Literal
@@ -7,12 +7,12 @@ from rich.logging import RichHandler
 
 
 def get_logger(name: str) -> logging.Logger:
-    """get a logger nested under fastmcp namespace.
+    """Get a logger nested under fastmcp namespace.
 
-    args:
+    Args:
         name: the name of the logger, which will be prefixed with 'fastmcp.'
 
-    returns:
+    Returns:
         a configured logger instance
     """
     return logging.getLogger(f"fastmcp.{name}")
@@ -21,9 +21,9 @@ def get_logger(name: str) -> logging.Logger:
 def configure_logging(
     level: Literal["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"] = "INFO",
 ) -> None:
-    """configure logging for fastmcp.
+    """Configure logging for FastMCP.
 
-    args:
+    Args:
         level: the log level to use
     """
     logging.basicConfig(
