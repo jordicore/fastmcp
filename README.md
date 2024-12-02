@@ -157,9 +157,6 @@ from fastmcp import FastMCP
 # Create a named server
 mcp = FastMCP("My App")
 
-# Configure host/port for HTTP transport (optional)
-mcp = FastMCP("My App", host="localhost", port=8000)
-
 # Specify dependencies for deployment and development
 mcp = FastMCP("My App", dependencies=["pandas", "numpy"])
 ```
