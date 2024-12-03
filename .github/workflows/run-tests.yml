@@ -28,7 +28,7 @@ permissions:
 
 jobs:
   run_tests:
-    name: Python ${{ matrix.python-version }} on ${{ matrix.os }}
+    name: "Run tests: Python ${{ matrix.python-version }} on ${{ matrix.os }}"
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
