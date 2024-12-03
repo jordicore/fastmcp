@@ -19,5 +19,6 @@ jobs:
       - uses: actions/checkout@v4
       - uses: jlowin/ai-labeler@v0.5.0
         with:
+          include-repo-labels: false
           openai-api-key: ${{ secrets.OPENAI_API_KEY }}
           controlflow-llm-model: openai/gpt-4o-mini
