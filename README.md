@@ -1,8 +1,24 @@
-<!-- omit in toc -->
-# FastMCP 🚀
+<div align="center">
+
+### 🎉 FastMCP has been added to the official MCP SDK! 🎉
+
+You can now find FastMCP as part of the official Model Context Protocol Python SDK:
+
+👉 [github.com/modelcontextprotocol/python-sdk](https://github.com/modelcontextprotocol/python-sdk)
+
+*Please note: this repository is no longer maintained.*
+
+---
+
+
+</br></br></br>
+
+</div>
 
 <div align="center">
 
+<!-- omit in toc -->
+# FastMCP 🚀
 <strong>The fast, Pythonic way to build MCP servers.</strong>
 
 [![PyPI - Version](https://img.shields.io/pypi/v/fastmcp.svg)](https://pypi.org/project/fastmcp)
