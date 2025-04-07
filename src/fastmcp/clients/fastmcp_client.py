@@ -4,14 +4,14 @@ from typing import TypeVar
 from mcp.shared.memory import create_connected_server_and_client_session
 from typing_extensions import Unpack
 
-from fastmcp.client.base import BaseClient, ClientKwargs
+from fastmcp.clients.base import BaseClient, ClientKwargs
 from fastmcp.server.server import FastMCP
 
 T = TypeVar("T")
 
 
-class InMemoryClient(BaseClient):
-    """Client that connects to an in-memory MCP server.
+class FastMCPClient(BaseClient):
+    """Client that connects directly to an in-memory FastMCP server.
 
     This client creates and manages an in-memory connection to a server,
     without using any external processes or network connections.

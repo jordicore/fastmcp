@@ -3,7 +3,7 @@ from typing import cast
 import pytest
 from pydantic import AnyUrl
 
-from fastmcp.client.memory import InMemoryClient
+from fastmcp.clients import FastMCPClient
 from fastmcp.server.server import FastMCP
 
 
@@ -50,7 +50,7 @@ def fastmcp_server():
 
 async def test_list_tools(fastmcp_server):
     """Test listing tools with InMemoryClient."""
-    client = InMemoryClient(server=fastmcp_server)
+    client = FastMCPClient(server=fastmcp_server)
 
     async with client:
         result = await client.list_tools()
@@ -64,7 +64,7 @@ async def test_list_tools(fastmcp_server):
 
 async def test_call_tool(fastmcp_server):
     """Test calling a tool with InMemoryClient."""
-    client = InMemoryClient(server=fastmcp_server)
+    client = FastMCPClient(server=fastmcp_server)
 
     async with client:
         result = await client.call_tool("greet", {"name": "World"})
@@ -76,7 +76,7 @@ async def test_call_tool(fastmcp_server):
 
 async def test_list_resources(fastmcp_server):
     """Test listing resources with InMemoryClient."""
-    client = InMemoryClient(server=fastmcp_server)
+    client = FastMCPClient(server=fastmcp_server)
 
     async with client:
         result = await client.list_resources()
@@ -88,7 +88,7 @@ async def test_list_resources(fastmcp_server):
 
 async def test_list_prompts(fastmcp_server):
     """Test listing prompts with InMemoryClient."""
-    client = InMemoryClient(server=fastmcp_server)
+    client = FastMCPClient(server=fastmcp_server)
 
     async with client:
         result = await client.list_prompts()
@@ -100,7 +100,7 @@ async def test_list_prompts(fastmcp_server):
 
 async def test_get_prompt(fastmcp_server):
     """Test getting a prompt with InMemoryClient."""
-    client = InMemoryClient(server=fastmcp_server)
+    client = FastMCPClient(server=fastmcp_server)
 
     async with client:
         result = await client.get_prompt("welcome", {"name": "Developer"})
@@ -112,7 +112,7 @@ async def test_get_prompt(fastmcp_server):
 
 async def test_read_resource(fastmcp_server):
     """Test reading a resource with InMemoryClient."""
-    client = InMemoryClient(server=fastmcp_server)
+    client = FastMCPClient(server=fastmcp_server)
 
     async with client:
         # Use the URI from the resource we know exists in our server
@@ -130,7 +130,7 @@ async def test_read_resource(fastmcp_server):
 
 async def test_client_connection(fastmcp_server):
     """Test that the client connects and disconnects properly."""
-    client = InMemoryClient(server=fastmcp_server)
+    client = FastMCPClient(server=fastmcp_server)
 
     # Before connection
     assert not client.is_connected()
@@ -145,7 +145,7 @@ async def test_client_connection(fastmcp_server):
 
 async def test_resource_template(fastmcp_server):
     """Test using a resource template with InMemoryClient."""
-    client = InMemoryClient(server=fastmcp_server)
+    client = FastMCPClient(server=fastmcp_server)
 
     async with client:
         # First, list templates
