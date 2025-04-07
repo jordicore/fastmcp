@@ -1,4 +1,4 @@
-name: Run Pre-commits
+name: Run static analysis
 
 env:
   # enable colored output
