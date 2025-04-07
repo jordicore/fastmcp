@@ -6,7 +6,7 @@ from mcp import ClientSession, StdioServerParameters
 from mcp.client.stdio import stdio_client
 from typing_extensions import Unpack
 
-from fastmcp.client.base import BaseClient, ClientKwargs
+from fastmcp.clients.base import BaseClient, ClientKwargs
 
 
 class StdioClient(BaseClient):

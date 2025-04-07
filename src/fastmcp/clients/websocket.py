@@ -4,7 +4,7 @@ from mcp import ClientSession
 from mcp.client.websocket import websocket_client
 from typing_extensions import Unpack
 
-from fastmcp.client.base import BaseClient, ClientKwargs
+from fastmcp.clients.base import BaseClient, ClientKwargs
 
 
 class WebSocketClient(BaseClient):
