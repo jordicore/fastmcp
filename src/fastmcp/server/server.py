@@ -1,4 +1,4 @@
-from typing import Any, Dict
+from typing import TYPE_CHECKING, Any, Dict
 
 import mcp.server.fastmcp
 import mcp.types
@@ -8,6 +8,11 @@ from fastmcp.resources.resource_manager import ResourceManager
 from fastmcp.server.context import Context
 from fastmcp.tools.tool_manager import ToolManager
 from fastmcp.utilities.logging import get_logger
+
+if TYPE_CHECKING:
+    from fastmcp.clients.base import BaseClient
+
+    from .proxy import FastMCPProxy
 
 logger = get_logger(__name__)
 
@@ -62,20 +67,41 @@ class FastMCP(mcp.server.fastmcp.FastMCP):
         # Mount the app in the list of mounted apps
         self._mounted_apps[prefix] = app
 
-        # Import tools from the mounted app
-        self._tool_manager.import_tools(app._tool_manager, prefix)
+        # Import tools from the mounted app with / delimiter
+        tool_prefix = f"{prefix}/"
+        self._tool_manager.import_tools(app._tool_manager, tool_prefix)
 
-        # Import resources from the mounted app
-        self._resource_manager.import_resources(app._resource_manager, prefix)
+        # Import resources and templates from the mounted app with + delimiter
+        resource_prefix = f"{prefix}+"
+        self._resource_manager.import_resources(app._resource_manager, resource_prefix)
+        self._resource_manager.import_templates(app._resource_manager, resource_prefix)
 
-        # Import resource templates
-        self._resource_manager.import_templates(app._resource_manager, prefix)
-
-        # Import prompts
-        self._prompt_manager.import_prompts(app._prompt_manager, prefix)
+        # Import prompts with / delimiter
+        prompt_prefix = f"{prefix}/"
+        self._prompt_manager.import_prompts(app._prompt_manager, prompt_prefix)
 
         logger.info(f"Mounted app with prefix '{prefix}'")
-        logger.debug(f"Imported tools with prefix '{prefix}/'")
-        logger.debug(f"Imported resources with prefix '{prefix}+'")
-        logger.debug(f"Imported templates with prefix '{prefix}+'")
-        logger.debug(f"Imported prompts with prefix '{prefix}/'")
+        logger.debug(f"Imported tools with prefix '{tool_prefix}'")
+        logger.debug(f"Imported resources with prefix '{resource_prefix}'")
+        logger.debug(f"Imported templates with prefix '{resource_prefix}'")
+        logger.debug(f"Imported prompts with prefix '{prompt_prefix}'")
+
+    @classmethod
+    async def as_proxy(cls, client: "BaseClient", **settings: Any) -> "FastMCPProxy":
+        """
+        Create a FastMCP proxy server from a client.
+
+        This method creates a new FastMCP server instance that proxies requests to the provided client.
+        It discovers the client's tools, resources, prompts, and templates, and creates corresponding
+        components in the server that forward requests to the client.
+
+        Args:
+            client: The client to proxy requests to
+            **settings: Additional settings for the FastMCP server
+
+        Returns:
+            A FastMCP server that proxies requests to the client
+        """
+        from .proxy import FastMCPProxy
+
+        return await FastMCPProxy.from_client(client=client, **settings)

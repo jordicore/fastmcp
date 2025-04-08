@@ -7,12 +7,6 @@ from fastmcp.clients import FastMCPClient
 from fastmcp.server.server import FastMCP
 
 
-class _TestException(Exception):
-    """Test exception for testing raise_exceptions behavior."""
-
-    pass
-
-
 @pytest.fixture
 def fastmcp_server():
     """Fixture that creates a FastMCP server with tools, resources, and prompts."""
@@ -24,11 +18,11 @@ def fastmcp_server():
         """Greet someone by name."""
         return f"Hello, {name}!"
 
-    # Add a tool that raises an exception
+    # Add a second tool
     @server.tool()
-    def error_tool() -> str:
-        """A tool that always raises an exception."""
-        raise _TestException("Deliberate test exception")
+    def add(a: int, b: int) -> int:
+        """Add two numbers together."""
+        return a + b
 
     # Add a resource
     @server.resource(uri="data://users")
@@ -57,9 +51,7 @@ async def test_list_tools(fastmcp_server):
 
         # Check that our tools are available
         assert len(result.tools) == 2
-        tool_names = [tool.name for tool in result.tools]
-        assert "greet" in tool_names
-        assert "error_tool" in tool_names
+        assert set(tool.name for tool in result.tools) == {"greet", "add"}
 
 
 async def test_call_tool(fastmcp_server):
