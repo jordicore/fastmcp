@@ -10,7 +10,9 @@ from fastmcp.tools.tool_manager import ToolManager
 from fastmcp.utilities.logging import get_logger
 
 if TYPE_CHECKING:
-    pass
+    from fastmcp.clients.base import BaseClient
+
+    from .proxy import FastMCPProxy
 
 logger = get_logger(__name__)
 
@@ -83,3 +85,23 @@ class FastMCP(mcp.server.fastmcp.FastMCP):
         logger.debug(f"Imported resources with prefix '{resource_prefix}'")
         logger.debug(f"Imported templates with prefix '{resource_prefix}'")
         logger.debug(f"Imported prompts with prefix '{prompt_prefix}'")
+
+    @classmethod
+    async def as_proxy(cls, client: "BaseClient", **settings: Any) -> "FastMCPProxy":
+        """
+        Create a FastMCP proxy server from a client.
+
+        This method creates a new FastMCP server instance that proxies requests to the provided client.
+        It discovers the client's tools, resources, prompts, and templates, and creates corresponding
+        components in the server that forward requests to the client.
+
+        Args:
+            client: The client to proxy requests to
+            **settings: Additional settings for the FastMCP server
+
+        Returns:
+            A FastMCP server that proxies requests to the client
+        """
+        from .proxy import FastMCPProxy
+
+        return await FastMCPProxy.from_client(client=client, **settings)
