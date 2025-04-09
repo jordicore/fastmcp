@@ -1,15 +1,15 @@
 from typing import Any, cast
 
 import mcp.types
-from mcp.server.fastmcp.prompts import Prompt
-from mcp.server.fastmcp.resources import Resource, ResourceTemplate
-from mcp.server.fastmcp.tools.base import Tool
-from mcp.server.fastmcp.utilities.func_metadata import func_metadata
 from mcp.types import BlobResourceContents, PromptMessage, TextResourceContents
 
 from fastmcp.clients.base import BaseClient
+from fastmcp.prompts import Prompt
+from fastmcp.resources import Resource, ResourceTemplate
 from fastmcp.server.context import Context
 from fastmcp.server.server import FastMCP
+from fastmcp.tools.base import Tool
+from fastmcp.utilities.func_metadata import func_metadata
 from fastmcp.utilities.logging import get_logger
 
 logger = get_logger(__name__)
