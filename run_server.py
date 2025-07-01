@@ -17,4 +17,4 @@ def my_second_tool(x: int, y: int) -> int:
     return x + y
 
 if __name__ == "__main__":
-    server.run(transport="http", host="0.0.0.0", port=8000)
+    server.run(transport="http", host="0.0.0.0", port=8000, stateless_http=True)
