@@ -1,9 +1,11 @@
 from fastmcp.server.server import FastMCP
 
 # Create an instance of the server and add the tools.
+# The stateless_http flag goes in the constructor.
 server = FastMCP(
     name="My Custom Server",
     instructions="A server with my custom tools",
+    stateless_http=True,
 )
 
 @server.tool
@@ -17,4 +19,5 @@ def my_second_tool(x: int, y: int) -> int:
     return x + y
 
 if __name__ == "__main__":
-    server.run(transport="http", host="0.0.0.0", port=8000, stateless_http=True)
+    # The run command should not have the stateless_http flag.
+    server.run(transport="http", host="0.0.0.0", port=8000)
