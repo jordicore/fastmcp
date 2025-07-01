@@ -1,0 +1,13 @@
+services:
+  - type: web
+    name: fastmcp-server
+    env: python
+    plan: free
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "bash entrypoint.sh"
+    healthCheckPath: /
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.10
+      - key: PYTHONPATH
+        value: /opt/render/project/src
