@@ -118,5 +118,18 @@ def generate_openapi_spec_from_supabase() -> dict:
     return openapi_spec
 
 def create_client_for_tools() -> httpx.AsyncClient:
+    """
+    Creates an httpx.AsyncClient configured to make authenticated requests
+    to the tool APIs.
+    """
     API_BASE_URL = os.environ.get("TOOL_API_BASE_URL", "https://autocab-api.azure-api.net")
-    return httpx.AsyncClient(base_url=API_BASE_URL)
+    SUBSCRIPTION_KEY = os.environ.get("OCP_APIM_SUBSCRIPTION_KEY")
+    
+    if not SUBSCRIPTION_KEY:
+        raise ValueError("OCP_APIM_SUBSCRIPTION_KEY environment variable not set.")
+        
+    headers = {
+        "Ocp-Apim-Subscription-Key": SUBSCRIPTION_KEY
+    }
+    
+    return httpx.AsyncClient(base_url=API_BASE_URL, headers=headers)
