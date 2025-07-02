@@ -60,3 +60,7 @@ dmypy.json
 *.sqlite
 *.db
 *.ddb
+
+
+*.pem
+*.key
