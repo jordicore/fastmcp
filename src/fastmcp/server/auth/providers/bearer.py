@@ -87,6 +87,20 @@ class RSAKeyPair:
             public_key=public_pem,
         )
 
+    @classmethod
+    def from_private_key(cls, private_key_pem: str) -> "RSAKeyPair":
+        """Construct an ``RSAKeyPair`` from an existing private key."""
+
+        private_key = serialization.load_pem_private_key(
+            private_key_pem.encode(), password=None
+        )
+        public_pem = private_key.public_key().public_bytes(
+            encoding=serialization.Encoding.PEM,
+            format=serialization.PublicFormat.SubjectPublicKeyInfo,
+        ).decode("utf-8")
+
+        return cls(private_key=SecretStr(private_key_pem), public_key=public_pem)
+
     def create_token(
         self,
         subject: str = "fastmcp-user",

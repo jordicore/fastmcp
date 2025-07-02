@@ -1,14 +1,33 @@
 from fastmcp.server.server import FastMCP
 from fastmcp.server.auth.providers.bearer import BearerAuthProvider, RSAKeyPair
-from fastmcp.tool_loader import generate_openapi_spec_from_supabase, create_client_for_tools
+from fastmcp.tool_loader import (
+    generate_openapi_spec_from_supabase,
+    create_client_for_tools,
+)
 import os
 
 # --- Authentication Server Setup ---
 # This server's only job is to handle security.
-# A new key pair and token will be generated on each server build.
-print("Generating new RSA key pair for this session...")
-key_pair = RSAKeyPair.generate()
-auth_provider = BearerAuthProvider(public_key=key_pair.public_key)
+# By default we generate a new key pair on each boot, but a fixed key can be
+# provided via the ``FASTMCP_PRIVATE_KEY`` environment variable.
+
+private_key_env = os.getenv("FASTMCP_PRIVATE_KEY")
+public_key_env = os.getenv("FASTMCP_PUBLIC_KEY")
+
+if private_key_env:
+    print("Loading RSA key pair from FASTMCP_PRIVATE_KEY environment variable...")
+    key_pair = RSAKeyPair.from_private_key(private_key_env)
+    public_key = key_pair.public_key
+elif public_key_env:
+    print("Using public key from FASTMCP_PUBLIC_KEY environment variable...")
+    key_pair = None
+    public_key = public_key_env
+else:
+    print("Generating new RSA key pair for this session...")
+    key_pair = RSAKeyPair.generate()
+    public_key = key_pair.public_key
+
+auth_provider = BearerAuthProvider(public_key=public_key)
 
 # Create the main server that handles authentication.
 auth_server = FastMCP(
@@ -30,11 +49,22 @@ auth_server.mount(tools_server)
 
 
 if __name__ == "__main__":
-    # Generate a token for client use for this session.
-    # You will need to get this from the logs after each deployment.
-    access_token = key_pair.create_token(audience="my-custom-server", expires_in_seconds=3600) # 1 hour
+    # Token for client use. Set FASTMCP_ACCESS_TOKEN to supply your own fixed
+    # token. Otherwise a new one will be generated (requires a private key).
+
+    access_token = os.getenv("FASTMCP_ACCESS_TOKEN")
+    if not access_token:
+        if key_pair is None:
+            raise RuntimeError(
+                "FASTMCP_ACCESS_TOKEN must be set when no private key is available."
+            )
+        access_token = key_pair.create_token(
+            audience=os.getenv("FASTMCP_TOKEN_AUDIENCE", "my-custom-server"),
+            expires_in_seconds=int(os.getenv("FASTMCP_TOKEN_EXPIRES_IN", 3600)),
+        )
+
     print("-" * 80)
-    print("🚀 Your NEW access token for this session is: 🚀")
+    print("🚀 Your access token for this session is: 🚀")
     print(access_token)
     print("-" * 80)
     
