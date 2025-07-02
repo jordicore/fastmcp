@@ -47,7 +47,7 @@ def generate_openapi_spec_from_supabase() -> dict:
     
     # 4. Process each tool and add it to the spec
     for tool in tools:
-        endpoint = endpoint_map.get(tool.get("endpoint_id"))
+        endpoint = next((e for e in endpoints if e.get("endpoint_id") == tool["id"]), None)
         if not endpoint:
             print(f"  - Skipping tool '{tool.get('tool_name')}' (no endpoint found).")
             continue
