@@ -19,8 +19,6 @@ def generate_openapi_spec_from_supabase() -> dict:
     supabase = create_client(SUPABASE_URL, SUPABASE_KEY)
 
     # 1. Fetch enabled tools and their corresponding endpoints in a single query.
-    # The 'api_endpoints!inner(*)' part tells Supabase to perform an INNER JOIN.
-    # This ensures we only get tools that have a valid, linked endpoint.
     response = (
         supabase.table("mcp_tools")
         .select("*, api_endpoints!inner(*)")
@@ -28,12 +26,10 @@ def generate_openapi_spec_from_supabase() -> dict:
         .execute()
     )
     
-    # Also fetch all parameters for all endpoints.
     params_response = supabase.table("endpoint_parameters").select("*").execute()
 
     if not response.data:
         print("Warning: No enabled tools with linked endpoints found.")
-        # Return an empty but valid spec if no tools are found
         return {
             "openapi": "3.0.0",
             "info": {"title": "Supabase Dynamic Tools", "version": "1.0.0"},
@@ -43,12 +39,10 @@ def generate_openapi_spec_from_supabase() -> dict:
     tools_with_endpoints = response.data
     all_params = params_response.data
     
-    # 2. Create a map of parameters for efficient lookup, keyed by their endpoint_id.
     params_map = {}
     for p in all_params:
         params_map.setdefault(p["endpoint_id"], []).append(p)
         
-    # 3. Start building the OpenAPI specification
     openapi_spec = {
         "openapi": "3.0.0",
         "info": {"title": "Supabase Dynamic Tools", "version": "1.0.0"},
@@ -59,12 +53,13 @@ def generate_openapi_spec_from_supabase() -> dict:
 
     # 4. Process each tool and add it to the spec
     for item in tools_with_endpoints:
-        # The endpoint data is now nested inside the 'api_endpoints' field.
-        # Since it's a one-to-one relationship, it will be a single dictionary.
-        endpoint = item.get("api_endpoints")
-        if not endpoint:
+        # The joined 'api_endpoints' field is a LIST. We need the first item.
+        endpoints_list = item.get("api_endpoints")
+        if not isinstance(endpoints_list, list) or not endpoints_list:
             print(f"  - Skipping tool '{item.get('tool_name')}' (no endpoint data in joined query).")
             continue
+            
+        endpoint = endpoints_list[0]
 
         path = urlparse(endpoint["url"]).path
         method = endpoint["method"].lower()
@@ -79,7 +74,6 @@ def generate_openapi_spec_from_supabase() -> dict:
             "responses": {"200": {"description": "Successful Response"}}
         }
         
-        # Look up parameters using the endpoint's actual ID
         tool_params = params_map.get(endpoint["id"], [])
         body_properties = {}
         body_required_fields = []
