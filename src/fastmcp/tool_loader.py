@@ -1,12 +1,13 @@
 # src/fastmcp/tool_loader.py
 import os
-from supabase import create_client, Client
+from supabase import create_client
 import httpx
+from urllib.parse import urlparse
 
 def generate_openapi_spec_from_supabase() -> dict:
     """
     Connects to Supabase using credentials from environment variables,
-    fetches tool definitions, and generates an OpenAPI specification dictionary.
+    fetches tool definitions, and generates a valid OpenAPI specification dictionary.
     """
     SUPABASE_URL = os.environ.get("SUPABASE_URL")
     SUPABASE_KEY = os.environ.get("SUPABASE_KEY")
@@ -29,7 +30,7 @@ def generate_openapi_spec_from_supabase() -> dict:
     endpoints = endpoints_response.data
     all_params = params_response.data
 
-    # 2. Create maps for easier and more efficient lookup
+    # 2. Create maps for easier lookup
     endpoint_map = {e["id"]: e for e in endpoints}
     params_map = {}
     for p in all_params:
@@ -45,14 +46,17 @@ def generate_openapi_spec_from_supabase() -> dict:
         "paths": {},
     }
     
+    json_schema_types = {"string", "number", "integer", "boolean", "array", "object"}
+
     # 4. Process each tool and add it to the spec
     for tool in tools:
-        endpoint = next((e for e in endpoints if e.get("endpoint_id") == tool["id"]), None)
+        endpoint = endpoint_map.get(tool.get("endpoint_id"))
         if not endpoint:
             print(f"  - Skipping tool '{tool.get('tool_name')}' (no endpoint found).")
             continue
 
-        path = endpoint["url"]
+        # Correctly parse the URL to get just the path
+        path = urlparse(endpoint["url"]).path
         method = endpoint["method"].lower()
         
         if path not in openapi_spec["paths"]:
@@ -60,39 +64,55 @@ def generate_openapi_spec_from_supabase() -> dict:
             
         path_item = {
             "summary": tool["tool_description"],
-            "operationId": tool["tool_name"], # This becomes the tool name in FastMCP
+            "operationId": tool["tool_name"],
             "parameters": [],
-            "responses": {
-                "200": {"description": "Successful Response"}
-            }
+            "responses": {"200": {"description": "Successful Response"}}
         }
         
         tool_params = params_map.get(endpoint["id"], [])
-        
-        if method == "get":
-            for p in tool_params:
+        body_properties = {}
+        body_required_fields = []
+
+        for p in tool_params:
+            # Sanitize the parameter type to be a valid JSON schema type
+            param_type = str(p.get("parameter_type", "string")).lower()
+            if param_type not in json_schema_types:
+                print(f"  - Warning: Invalid type '{param_type}' for param '{p['parameter_name']}'. Defaulting to 'string'.")
+                param_type = "string"
+
+            # Differentiate between path, query, and body parameters
+            if f'{{{p["parameter_name"]}}}' in path:
+                # It's a path parameter
+                path_item["parameters"].append({
+                    "name": p["parameter_name"],
+                    "in": "path",
+                    "required": True, # Path parameters are always required
+                    "schema": {"type": param_type}
+                })
+            elif method == "get":
+                # It's a query parameter for a GET request
                 path_item["parameters"].append({
                     "name": p["parameter_name"],
                     "in": "query",
-                    "required": p["is_required"],
-                    "schema": {"type": p["parameter_type"].lower()}
+                    "required": p.get("is_required", False),
+                    "schema": {"type": param_type}
                 })
-        elif method in ["post", "put"]:
-            properties = {}
-            required_fields = []
-            for p in tool_params:
-                properties[p["parameter_name"]] = {"type": p["parameter_type"].lower()}
-                if p["is_required"]:
-                    required_fields.append(p["parameter_name"])
-            
+            else: # POST/PUT/etc.
+                # It's a body parameter
+                body_properties[p["parameter_name"]] = {"type": param_type}
+                if p.get("is_required", False):
+                    body_required_fields.append(p["parameter_name"])
+
+        # For POST/PUT, if we found any body parameters, add them to the requestBody
+        if body_properties:
             path_item["requestBody"] = {
                 "required": True,
                 "content": {
                     "application/json": {
                         "schema": {
                             "type": "object",
-                            "properties": properties,
-                            "required": required_fields
+                            "properties": body_properties,
+                            "required": body_required_fields
                         }
                     }
                 }
@@ -108,6 +128,13 @@ def create_client_for_tools() -> httpx.AsyncClient:
     Creates an httpx.AsyncClient that can be used to make requests
     to the tool APIs.
     """
-    # For now, we assume all tool APIs are publicly accessible.
-    # If they required authentication, you would add it here.
-    return httpx.AsyncClient()
+    # NOTE: The base_url here is critical. The paths in your OpenAPI spec will be
+    # appended to this URL. You need to set this to the base domain of your tool APIs.
+    # For example, if your tool URLs are on Azure, you'd set it here.
+    # It's best to manage this via an environment variable.
+    
+    API_BASE_URL = os.environ.get("TOOL_API_BASE_URL", "https://autocab-api.azure-api.net")
+    
+    # You can also add authentication headers here if your tool APIs need them.
+    # For example: headers={"Authorization": f"Bearer {os.environ.get('TOOL_API_TOKEN')}"}
+    return httpx.AsyncClient(base_url=API_BASE_URL)
