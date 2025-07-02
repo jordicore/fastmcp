@@ -51,6 +51,11 @@ def generate_openapi_spec_from_supabase() -> dict:
     
     json_schema_types = {"string", "number", "integer", "boolean", "array", "object"}
 
+    for p in tool_params:
+        param_type = str(p.get("data_type", "string")).lower()
+        if param_type not in json_schema_types:
+            param_type = "string"
+
     # 4. Process each tool and add it to the spec
     for item in tools_with_endpoints:
         # The joined 'api_endpoints' field is a LIST. We need the first item.
@@ -79,7 +84,7 @@ def generate_openapi_spec_from_supabase() -> dict:
         body_required_fields = []
 
         for p in tool_params:
-            param_type = str(p.get("parameter_type", "string")).lower()
+            param_type = str(p.get("data_type", "string")).lower()
             if param_type not in json_schema_types:
                 param_type = "string"
 
