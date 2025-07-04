@@ -8,18 +8,17 @@ import anyio
 async def main():
     # --- Permanent Authentication Key Setup ---
     # Read the permanent private key from the environment variable.
-    # This is a critical secret for your server's security.
-    PRIVATE_KEY_PEM = os.environ.get("RSA_PRIVATE_KEY_PEM")
+    # The variable name here now matches what you have configured in Render.
+    PRIVATE_KEY_PEM = os.environ.get("FASTMCP_PRIVATE_KEY")
     if not PRIVATE_KEY_PEM:
         raise ValueError(
-            "FATAL: RSA_PRIVATE_KEY_PEM environment variable not set. "
+            "FATAL: FASTMCP_PRIVATE_KEY environment variable not set. "
             "The server cannot start without its permanent private key. "
             "Please ensure this is set in your Render environment variables."
         )
 
-    print("Loading permanent RSA key pair from environment variable...")
+    print("Loading permanent RSA key pair from environment variable 'FASTMCP_PRIVATE_KEY'...")
     # Initialize RSAKeyPair by passing the private key PEM string to the constructor.
-    # The public key is derived automatically.
     key_pair = RSAKeyPair(private_key=PRIVATE_KEY_PEM)
     auth_provider = BearerAuthProvider(public_key=key_pair.public_key)
 
@@ -30,7 +29,6 @@ async def main():
     )
 
     # --- Main Server Creation ---
-    # Create the server with both permanent auth and enhanced logging.
     auth_server = FastMCP(
         name="Authenticated Supabase Tool Server",
         instructions="A secure server that provides tools loaded from a Supabase database.",
@@ -60,7 +58,6 @@ async def main():
     print("-" * 80)
 
     # --- Server Run ---
-    # Generate the permanent token for client use.
     access_token = key_pair.create_token(audience="my-custom-server", expires_in_seconds=315360000) # ~10 years
     print("🚀 Your PERMANENT access token for this session is: 🚀")
     print(access_token)
