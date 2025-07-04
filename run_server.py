@@ -5,6 +5,7 @@ from fastmcp.server.middleware.logging import LoggingMiddleware
 import os
 import anyio
 from cryptography.hazmat.primitives import serialization
+from pydantic import SecretStr
 
 async def main():
     # --- Permanent Authentication Key Setup ---
@@ -17,23 +18,25 @@ async def main():
 
     print("Loading permanent RSA key pair from environment variable 'FASTMCP_PRIVATE_KEY'...")
     
-    # 1. Load the private key object from the PEM string in the environment variable.
+    # Load the private key object from the PEM string
     private_key_obj = serialization.load_pem_private_key(
         PRIVATE_KEY_PEM.encode(),
         password=None
     )
 
-    # 2. Derive the public key object from the private key.
+    # Derive the public key object and serialize it to a PEM string
     public_key_obj = private_key_obj.public_key()
-    
-    # 3. Serialize the public key object back into a PEM string.
     public_key_pem_str = public_key_obj.public_bytes(
         encoding=serialization.Encoding.PEM,
         format=serialization.PublicFormat.SubjectPublicKeyInfo
     ).decode()
     
-    # 4. Correctly initialize RSAKeyPair with BOTH the private and public keys.
-    key_pair = RSAKeyPair(private_key=PRIVATE_KEY_PEM, public_key=public_key_pem_str)
+    # 4. Correctly initialize RSAKeyPair.
+    # The private key must be wrapped in pydantic's SecretStr.
+    key_pair = RSAKeyPair(
+        private_key=SecretStr(PRIVATE_KEY_PEM), 
+        public_key=public_key_pem_str
+    )
     
     auth_provider = BearerAuthProvider(public_key=key_pair.public_key)
 
@@ -71,7 +74,7 @@ async def main():
 
     # --- Server Run ---
     access_token = key_pair.create_token(audience="my-custom-server", expires_in_seconds=315360000)
-    print("🚀 Your PERMANENT access token for this session is: 🚀")
+    print("🚀 Your PERMANENT access token is: 🚀")
     print(access_token)
     print("-" * 80)
     
