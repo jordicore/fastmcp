@@ -4,29 +4,41 @@ from fastmcp.tool_loader import generate_openapi_spec_from_supabase, create_clie
 from fastmcp.server.middleware.logging import LoggingMiddleware
 import os
 import anyio
+from cryptography.hazmat.primitives import serialization
 
 async def main():
     # --- Permanent Authentication Key Setup ---
-    # Read the permanent private key from the environment variable.
-    # The variable name here now matches what you have configured in Render.
     PRIVATE_KEY_PEM = os.environ.get("FASTMCP_PRIVATE_KEY")
     if not PRIVATE_KEY_PEM:
         raise ValueError(
             "FATAL: FASTMCP_PRIVATE_KEY environment variable not set. "
-            "The server cannot start without its permanent private key. "
-            "Please ensure this is set in your Render environment variables."
+            "The server cannot start without its permanent private key."
         )
 
     print("Loading permanent RSA key pair from environment variable 'FASTMCP_PRIVATE_KEY'...")
-    # Initialize RSAKeyPair by passing the private key PEM string to the constructor.
-    key_pair = RSAKeyPair(private_key=PRIVATE_KEY_PEM)
+    
+    # 1. Load the private key object from the PEM string in the environment variable.
+    private_key_obj = serialization.load_pem_private_key(
+        PRIVATE_KEY_PEM.encode(),
+        password=None
+    )
+
+    # 2. Derive the public key object from the private key.
+    public_key_obj = private_key_obj.public_key()
+    
+    # 3. Serialize the public key object back into a PEM string.
+    public_key_pem_str = public_key_obj.public_bytes(
+        encoding=serialization.Encoding.PEM,
+        format=serialization.PublicFormat.SubjectPublicKeyInfo
+    ).decode()
+    
+    # 4. Correctly initialize RSAKeyPair with BOTH the private and public keys.
+    key_pair = RSAKeyPair(private_key=PRIVATE_KEY_PEM, public_key=public_key_pem_str)
+    
     auth_provider = BearerAuthProvider(public_key=key_pair.public_key)
 
     # --- Middleware Setup for Better Logging ---
-    logging_middleware = LoggingMiddleware(
-        include_payloads=True,
-        max_payload_length=2000
-    )
+    logging_middleware = LoggingMiddleware(include_payloads=True, max_payload_length=2000)
 
     # --- Main Server Creation ---
     auth_server = FastMCP(
@@ -58,7 +70,7 @@ async def main():
     print("-" * 80)
 
     # --- Server Run ---
-    access_token = key_pair.create_token(audience="my-custom-server", expires_in_seconds=315360000) # ~10 years
+    access_token = key_pair.create_token(audience="my-custom-server", expires_in_seconds=315360000)
     print("🚀 Your PERMANENT access token for this session is: 🚀")
     print(access_token)
     print("-" * 80)
