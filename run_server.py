@@ -78,7 +78,16 @@ async def main():
     print(access_token)
     print("-" * 80)
     
-    await auth_server.run_async(transport="http", host="0.0.0.0", port=8000)
+    port_str = os.environ.get("PORT")
+    try:
+        port = int(port_str) if port_str else 8000
+    except ValueError:
+        raise ValueError(
+            "Invalid PORT environment variable. Expected an integer, "
+            f"received: {port_str!r}."
+        )
+
+    await auth_server.run_async(transport="http", host="0.0.0.0", port=port)
 
 if __name__ == "__main__":
     try:
